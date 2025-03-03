@@ -1,26 +1,83 @@
 import os
 from pathlib import Path
-# from dotenv import load_dotenv
 from datetime import timedelta
+from dotenv import load_dotenv
 
-# load_dotenv()
+# .env Datei laden
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Umgebung setzen (Standard: Entwicklung)
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
 # Sicherheitseinstellungen
-SECRET_KEY = 'django-insecure-2h6wblj2-bi4$06xf2%g_atpn+!wo#(qw%dj8vl!hc519b7qf^'
-DEBUG = ENVIRONMENT != "production"
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Hosts, die erlaubt sind
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    'localhost', 
+    '34.65.218.135'  # Deine Google Cloud VM IP
+]
+
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
+    "http://34.65.218.135"  # Falls Frontend auf der gleichen VM läuft
 ]
 
-CACHE_TTL = 60 * 15
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1',
+    'http://localhost',
+    'http://34.65.218.135'
+]
+
+CORS_ALLOW_CREDENTIALS = True  
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_HEADERS = ['content-type', 'authorization', 'x-requested-with']
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+
+# Cache mit Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1",  # Docker-Service-Name
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "videoflix",
+    }
+}
+
+# RQ-Queue für Hintergrundjobs
+RQ_QUEUES = {
+    'low': {
+        'HOST': 'redis',  # Docker-Container-Name
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 1200,
+    },
+    'high': {
+        'HOST': 'redis',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 300,
+    }
+}
+
+# Datenbank auf PostgreSQL setzen
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'videoflix'),
+        'USER': os.getenv('POSTGRES_USER', 'admin'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'secret'),
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    }
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,7 +86,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
@@ -41,7 +98,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,64 +106,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1',
-    'http://localhost',
-]
-
-CORS_ALLOW_CREDENTIALS = True  
-
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:4200",
-    "http://localhost:4200",
-]
-
-CORS_ALLOW_ALL_ORIGINS = False
-
-CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-    'x-requested-with',
-]
-
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-]
-
-
-# Caching mit Redis
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "videoflix",
-    }
-}
-
-# RQ-Queue für Hintergrundjobs
-RQ_QUEUES = {
-    'low': {
-        'HOST': '127.0.0.1',
-        'PORT': 6379,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 1200,
-    },
-    'high': {
-        'HOST': '127.0.0.1',
-        'PORT': 6379,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    }
-}
 
 ROOT_URLCONF = 'videoflix.urls'
 
@@ -127,50 +125,14 @@ TEMPLATES = [
     },
 ]
 
-# Media-Dateien für Uploads
+# Statische Dateien & Medien
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-
 WSGI_APPLICATION = 'videoflix.wsgi.application'
-
-# Lokale Entwicklung mit SQLite, später Wechsel auf PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Später in Produktion auf PostgreSQL umstellen:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),
-#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-#         'HOST': os.getenv('POSTGRES_HOST', 'postgres'),
-#         'PORT': os.getenv('POSTGRES_PORT', '5432'),
-#     }
-# }
-
-# Passwort-Validierung
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 # REST API Authentifizierung mit JWT
 REST_FRAMEWORK = {
@@ -187,16 +149,16 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-# E-Mail-Einstellungen für das Versenden von Mails
+# E-Mail-Konfiguration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"  # Ändere dies entsprechend deines Mailservers
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "dein-email@example.com")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "dein-passwort")  # Nutze Umgebungsvariablen!
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "dein-passwort")  # Nutze .env!
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Entwicklungsmodus: E-Mails nur in der Konsole anzeigen
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Falls im DEBUG-Modus, Mails in der Konsole ausgeben
+# if DEBUG:
+#     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
