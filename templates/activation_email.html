@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Aktivierung deines Accounts - Videoflix</title>
+</head>
+<style>
+  .wrapper {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+
+  p {
+    margin: 20px 0;
+    line-height: 1.5;
+    font-size: 16px;
+    color: #333;
+  }
+
+  .link {
+    display: inline-block;
+    background-color: #2e3edf;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin: 20px 0;
+    border-radius: 5px;
+    max-width: 120px;
+  }
+
+  a:hover {
+    background-color: #969fef;
+  }
+
+  img {
+    margin-bottom: 20px;
+  }
+</style>
+
+<body>
+  <div class="wrapper">
+    <img class="logo" src="img" alt="Videoflix Logo"
+      width="200" />
+    <p>Hallo {{ user.username }},</p>
+    <p>Bitte klicke auf den unten stehenden Link, um deinen Account zu aktivieren:</p>
+    <a class="link" href="{{activation_link}}">Aktiviere deinen Account</a>
+    <p>Wenn du den Account nicht erstellt hast, ignoriere bitte diese E-Mail.</p>
+  </div>
+</body>
+
+</html>

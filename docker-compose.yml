@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: videoflix-db
+    restart: always
+    environment:
+      POSTGRES_DB: videoflix
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: videoflix-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    container_name: videoflix-backend
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgres://admin:secret@db:5432/videoflix
+      REDIS_URL: redis://redis:6379/1
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-2h6wblj2-bi4$06xf2%g_atpn+!wo#(qw%dj8vl!hc519b7qf^"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: .
+    container_name: videoflix-worker
+    restart: always
+    depends_on:
+      - redis
+    command: ["python", "manage.py", "rqworker", "high", "low"]
+    environment:
+      DATABASE_URL: postgres://admin:secret@db:5432/videoflix
+      REDIS_URL: redis://redis:6379/1
+      DEBUG: "False"
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
