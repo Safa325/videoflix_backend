@@ -2,7 +2,7 @@
 FROM python:3.11
 
 # Setze das Arbeitsverzeichnis
-WORKDIR /app
+WORKDIR /home/safashamari/projects/videoflix_backend
 
 # Installiere Abhängigkeiten
 COPY requirements.txt .
