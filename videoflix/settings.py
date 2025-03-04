@@ -19,13 +19,13 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
-    '34.65.191.26'  # NEUE VM-IP
+    '34.65.191.26'  
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
-    "http://34.65.191.26"  # Falls Frontend auf der gleichen VM läuft
+    "http://34.65.191.26"  
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -74,7 +74,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'videoflix'),
         'USER': os.getenv('POSTGRES_USER', 'admin'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'secret'),
-        'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Der Service-Name aus docker-compose.yml
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
