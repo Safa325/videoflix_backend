@@ -8,7 +8,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Umgebung setzen (Standard: Entwicklung)
+# Umgebung setzen (Standard: Produktion)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
 # Sicherheitseinstellungen
@@ -19,19 +19,19 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
-    '34.65.218.135'  # Deine Google Cloud VM IP
+    '34.65.191.26'  # NEUE VM-IP
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
-    "http://34.65.218.135"  # Falls Frontend auf der gleichen VM läuft
+    "http://34.65.191.26"  # Falls Frontend auf der gleichen VM läuft
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1',
     'http://localhost',
-    'http://34.65.218.135'
+    'http://34.65.191.26'
 ]
 
 CORS_ALLOW_CREDENTIALS = True  
@@ -74,7 +74,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'videoflix'),
         'USER': os.getenv('POSTGRES_USER', 'admin'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'secret'),
-        'HOST': os.getenv('POSTGRES_HOST', 'db'),  
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Der Service-Name aus docker-compose.yml
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
@@ -160,5 +160,5 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "dein-passwort")  # Nutze
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Falls im DEBUG-Modus, Mails in der Konsole ausgeben
-# if DEBUG:
-#     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
