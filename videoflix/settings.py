@@ -19,20 +19,29 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
-    '34.65.209.156'  
+    '34.65.209.156', 
+    'videoflix.shamarisafa.ch',  
+    'www.videoflix.shamarisafa.ch'  
 ]
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
-    "http://34.65.209.156"  
+    "http://34.65.209.156",
+    "https://videoflix.shamarisafa.ch",
+    "https://www.videoflix.shamarisafa.ch"
 ]
 
+
 CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1',
-    'http://localhost',
-    'http://34.65.209.156'
+    "http://127.0.0.1",
+    "http://localhost",
+    "http://34.65.209.156",
+    "https://videoflix.shamarisafa.ch",
+    "https://www.videoflix.shamarisafa.ch"
 ]
+
 
 CORS_ALLOW_CREDENTIALS = True  
 CORS_ALLOW_ALL_ORIGINS = False
