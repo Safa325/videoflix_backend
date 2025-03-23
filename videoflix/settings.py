@@ -142,7 +142,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'env/lib/python3.12/site-packages/django/contrib/admin/static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 STATICFILES_FINDERS = [
