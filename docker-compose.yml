@@ -28,10 +28,12 @@ services:
     depends_on:
       - db
       - redis
-    env_file:  
+    env_file:
       - .env
     volumes:
       - .:/app
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
     ports:
       - "8000:8000"
 
@@ -42,7 +44,7 @@ services:
     depends_on:
       - redis
     command: ["python", "manage.py", "rqworker", "high", "low"]
-    env_file:   
+    env_file:
       - .env
     volumes:
       - .:/app
@@ -59,6 +61,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
+      - ./staticfiles:/static
+      - ./media:/media
 
 volumes:
   postgres_data:
