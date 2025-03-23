@@ -145,6 +145,11 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'env/lib/python3.12/site-packages/django/contrib/admin/static'),
 ]
 
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
 
 WSGI_APPLICATION = 'videoflix.wsgi.application'
 
