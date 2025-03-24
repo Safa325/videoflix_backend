@@ -13,6 +13,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -20,38 +25,56 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build: .
     container_name: videoflix-backend
-    restart: always
+    restart: unless-stopped
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SETTINGS_MODULE=videoflix.settings
     volumes:
-      - ./media:/app/media  # Nur Medien-Dateien mounten
-      - ./static:/app/staticfiles  # Nur statische Dateien mounten
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   worker:
     build: .
     container_name: videoflix-worker
-    restart: always
+    restart: unless-stopped
     depends_on:
       - redis
-    command: ["python", "manage.py", "rqworker", "high", "low"]
     env_file:
       - .env
+    command: ["python", "manage.py", "rqworker", "high", "low"]
     volumes:
-      - ./media:/app/media  # Nur notwendige Volumes
+      - media_volume:/app/media
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SETTINGS_MODULE=videoflix.settings
 
   nginx:
     image: nginx:latest
     container_name: videoflix-nginx
-    restart: always
+    restart: unless-stopped
     depends_on:
       - web
     ports:
@@ -60,8 +83,15 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
-      - ./static:/app/staticfiles
-      - ./media:/app/media
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:

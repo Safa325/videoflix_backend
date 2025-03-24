@@ -135,15 +135,16 @@ TEMPLATES = [
 ]
 
 # Statische Dateien & Medien
-STATIC_URL = '/app/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-MEDIA_URL = '/app/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
+# Korrekte Staticfiles-Konfiguration
+STATIC_URL = '/static/'  
+STATIC_ROOT = BASE_DIR / 'staticfiles' 
 STATICFILES_DIRS = [
-    BASE_DIR /'static',
+    BASE_DIR / 'static',  
 ]
+
+# Media-Konfiguration
+MEDIA_URL = '/media/' 
+MEDIA_ROOT = BASE_DIR / 'media' 
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
