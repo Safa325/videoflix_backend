@@ -28,9 +28,9 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 # Set working directory
 WORKDIR /app
 
-# Copy application files (explicitly including entrypoint)
-COPY --chown=appuser:appuser . /app/
-COPY --chown=appuser:appuser entrypoint.prod.sh /app/entrypoint.prod.sh
+# Kopiere die Datei mit expliziten Berechtigungen
+COPY --chown=appuser:appuser entrypoint.prod.sh /app/
+RUN chmod 755 /app/entrypoint.prod.sh  # rwx für Owner, r-x für Gruppe/Others
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
