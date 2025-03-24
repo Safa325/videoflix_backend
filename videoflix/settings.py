@@ -135,14 +135,14 @@ TEMPLATES = [
 ]
 
 # Statische Dateien & Medien
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/app/static/'
+STATIC_ROOT = BASE_DIR, 'staticfiles'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/app/media/'
+MEDIA_ROOT = BASE_DIR, 'media'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    BASE_DIR, 'static',
 ]
 
 STATICFILES_FINDERS = [

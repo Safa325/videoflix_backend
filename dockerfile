@@ -1,26 +1,48 @@
-# Basis-Image
-FROM python:3.11
+# Stage 1: Base build stage
+FROM python:3.11 AS builder
+
+RUN mkdir /app
 
 # Setze das Arbeitsverzeichnis
-WORKDIR /home/safashamari/projects/videoflix_backend
+WORKDIR /app
+
+# Set environment variables to optimize Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
 
 # Installiere Abhängigkeiten
+RUN pip install --upgrade pip 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Kopiere alle Projektdaten
-COPY . .
+# Stage 2: Production stage
+FROM python:3.11
 
-# Setze Umgebungsvariablen
-ENV PYTHONUNBUFFERED=1
-ENV ENVIRONMENT=production
-ENV DJANGO_SETTINGS_MODULE=videoflix.settings
+RUN useradd -m -r appuser && \
+   mkdir /app && \
+   chown -R appuser /app
 
-# Sammle statische Dateien
-RUN python manage.py collectstatic --noinput
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# Exponiere den Port
-EXPOSE 8000
+# Set the working directory
+WORKDIR /app
 
-# Starte den Gunicorn-Server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "videoflix.wsgi:application"]
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+# Set environment variables to optimize Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
+ 
+# Switch to non-root user
+USER appuser
+ 
+# Expose the application port
+EXPOSE 8000 
+
+# Make entry file executable
+RUN chmod +x  /app/entrypoint.prod.sh
+
+# Start the application using Gunicorn
+CMD ["/app/entrypoint.prod.sh"]
