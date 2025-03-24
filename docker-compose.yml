@@ -31,9 +31,8 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
-      - ./static:/app/staticfiles
-      - ./media:/app/media
+      - ./media:/app/media  # Nur Medien-Dateien mounten
+      - ./static:/app/staticfiles  # Nur statische Dateien mounten
     ports:
       - "8000:8000"
 
@@ -47,7 +46,7 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./media:/app/media  # Nur notwendige Volumes
 
   nginx:
     image: nginx:latest
@@ -61,8 +60,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
-      - ./static:/app/staticfiles  
-      - ./media:/app/media  
+      - ./static:/app/staticfiles
+      - ./media:/app/media
 
 volumes:
   postgres_data:
