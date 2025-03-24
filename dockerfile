@@ -1,48 +1,49 @@
-# Stage 1: Base build stage
+# Stage 1: Builder stage (install dependencies)
 FROM python:3.11 AS builder
 
-RUN mkdir /app
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Setze das Arbeitsverzeichnis
+# Create and set working directory
 WORKDIR /app
 
-# Set environment variables to optimize Python
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1 
-
-# Installiere Abhängigkeiten
-RUN pip install --upgrade pip 
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Production stage
 FROM python:3.11
 
+# Create non-root user and app directory
 RUN useradd -m -r appuser && \
-   mkdir /app && \
-   chown -R appuser /app
+    mkdir /app && \
+    chown -R appuser /app
 
+# Copy installed dependencies from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Copy application files (explicitly including entrypoint)
+COPY --chown=appuser:appuser . /app/
+COPY --chown=appuser:appuser entrypoint.prod.sh /app/entrypoint.prod.sh
 
-# Set environment variables to optimize Python
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1 
- 
+ENV PYTHONUNBUFFERED=1
+
+# Set permissions for entrypoint
+RUN chmod +x /app/entrypoint.prod.sh
+
 # Switch to non-root user
 USER appuser
- 
-# Expose the application port
-EXPOSE 8000 
 
-# Make entry file executable
-RUN chmod +x  /app/entrypoint.prod.sh
+# Expose port
+EXPOSE 8000
 
-# Start the application using Gunicorn
+# Run entrypoint
 CMD ["/app/entrypoint.prod.sh"]

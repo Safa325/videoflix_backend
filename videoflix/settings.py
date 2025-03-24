@@ -136,13 +136,13 @@ TEMPLATES = [
 
 # Statische Dateien & Medien
 STATIC_URL = '/app/static/'
-STATIC_ROOT = BASE_DIR, 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/app/media/'
-MEDIA_ROOT = BASE_DIR, 'media'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_DIRS = [
-    BASE_DIR, 'static',
+    BASE_DIR /'static',
 ]
 
 STATICFILES_FINDERS = [
