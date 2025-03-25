@@ -13,7 +13,7 @@ RUN pip install --upgrade pip && \
 # Stage 2: Production stage
 FROM python:3.11
 
-# 🔧 ffmpeg installieren
+# 🔧 ffmpeg installieren (als root, bevor wir zu appuser wechseln!)
 RUN apt-get update && \
     apt-get install -y ffmpeg && \
     rm -rf /var/lib/apt/lists/*
