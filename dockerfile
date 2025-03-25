@@ -13,11 +13,9 @@ RUN pip install --upgrade pip && \
 # Stage 2: Runtime + ffmpeg
 FROM python:3.11
 
-# ✅ ffmpeg installieren
+# ffmpeg installieren
 USER root
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ffmpeg
 
 # Benutzer + Verzeichnis
 RUN useradd -m -r appuser && \
