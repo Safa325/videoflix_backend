@@ -1,4 +1,4 @@
-# Stage 1: Builder stage (install dependencies)
+# Stage 1: Builder
 FROM python:3.11 AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -10,12 +10,13 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Production stage
+# Stage 2: Runtime + ffmpeg
 FROM python:3.11
 
-# 🔧 ffmpeg installieren (als root, bevor wir zu appuser wechseln!)
-RUN sudo apt-get update && \
-    sudo apt-get install -y ffmpeg && \
+# ✅ ffmpeg installieren
+USER root
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Benutzer + Verzeichnis
@@ -28,8 +29,9 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 WORKDIR /app
 
-COPY --chown=appuser:appuser entrypoint.prod.sh /app/
-RUN chmod 755 /app/entrypoint.prod.sh
+COPY --chown=appuser:appuser . /app/
+COPY --chown=appuser:appuser entrypoint.prod.sh /app/entrypoint.prod.sh
+
 RUN chmod +x /app/entrypoint.prod.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
