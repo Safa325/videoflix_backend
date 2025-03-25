@@ -14,8 +14,8 @@ RUN pip install --upgrade pip && \
 FROM python:3.11
 
 # 🔧 ffmpeg installieren (als root, bevor wir zu appuser wechseln!)
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
+RUN sudo apt-get update && \
+    sudo apt-get install -y ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Benutzer + Verzeichnis
