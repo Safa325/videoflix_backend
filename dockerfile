@@ -1,59 +1,25 @@
-# Stage 1: Builder stage (install dependencies)
-FROM python:3.11 AS builder
+FROM python:3.12.3
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    ln -s /usr/bin/ffmpeg /usr/local/bin/ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create and set working directory
+# Arbeitsverzeichnis setzen
 WORKDIR /app
 
-# Install dependencies
+# Systempakete & Python-Abhängigkeiten installieren
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Stage 2: Production stage
-FROM python:3.11
-
 RUN apt-get update && \
     apt-get install -y ffmpeg && \
-    ln -s /usr/bin/ffmpeg /usr/local/bin/ffmpeg && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
-# Create non-root user and app directory
-RUN useradd -m -r appuser && \
-    mkdir /app && \
-    chown -R appuser /app
+# Projektdateien kopieren
+COPY . .
 
-# Copy installed dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
-
-# Set working directory
-WORKDIR /app
-
-# Kopiere die Datei mit expliziten Berechtigungen
-COPY --chown=appuser:appuser entrypoint.prod.sh /app/
-RUN chmod 755 /app/entrypoint.prod.sh  # rwx für Owner, r-x für Gruppe/Others
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set permissions for entrypoint
+# Entrypoint setzen & ausführbar machen
+COPY entrypoint.prod.sh /app/entrypoint.prod.sh
 RUN chmod +x /app/entrypoint.prod.sh
 
-# Switch to non-root user
-USER appuser
-
-# Expose port
+# Port freigeben
 EXPOSE 8000
 
-# Run entrypoint
+# Container-Start
 CMD ["/app/entrypoint.prod.sh"]
