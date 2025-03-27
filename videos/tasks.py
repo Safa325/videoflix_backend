@@ -6,7 +6,7 @@ from .models import Video
 
 logger = logging.getLogger(__name__)
 
-FFMPEG_PATH = '/usr/local/bin/ffmpeg'
+FFMPEG_PATH = '/usr/bin/ffmpeg'
 AUDIO_PARAMS = ['-c:a', 'aac', '-ar', '48000']
 VIDEO_CODEC = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '20', '-g', '48', '-keyint_min', '48']
 HLS_PARAMS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
