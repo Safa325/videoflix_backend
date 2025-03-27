@@ -1,25 +1,27 @@
 FROM python:3.12.3
 
+# Systempakete installieren (inkl. ffmpeg)
+RUN apt-get update && \
+    apt-get install -y ffmpeg curl && \
+    rm -rf /var/lib/apt/lists/*
+
 # Arbeitsverzeichnis setzen
 WORKDIR /app
 
-# Systempakete & Python-Abhängigkeiten installieren
+# Python requirements installieren
 COPY requirements.txt .
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Projektdateien kopieren
+# Projektcode kopieren
 COPY . .
 
-# Entrypoint setzen & ausführbar machen
+# Entrypoint Script setzen
 COPY entrypoint.prod.sh /app/entrypoint.prod.sh
 RUN chmod +x /app/entrypoint.prod.sh
 
 # Port freigeben
 EXPOSE 8000
 
-# Container-Start
+# Start des Containers
 CMD ["/app/entrypoint.prod.sh"]
