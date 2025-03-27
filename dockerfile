@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && \
     apt-get install -y ffmpeg && \
+    ln -s /usr/bin/ffmpeg /usr/local/bin/ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Create and set working directory
@@ -22,6 +23,7 @@ FROM python:3.11
 
 RUN apt-get update && \
     apt-get install -y ffmpeg && \
+    ln -s /usr/bin/ffmpeg /usr/local/bin/ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and app directory
