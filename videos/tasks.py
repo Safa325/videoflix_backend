@@ -27,7 +27,7 @@ def build_ffmpeg_command(source, name, bitrate, segment_path, output_path):
         raise ValueError(f"Unbekannte Auflösung: {name}")
 
     return [
-         FFMPEG_PATH, '-i', source,
+         FFMPEG_PATH,'-y', '-i', source,
         '-vf', scale_filter,
         *AUDIO_PARAMS,
         *VIDEO_CODEC,
@@ -88,7 +88,7 @@ def generate_video_thumbnail(source, video_id):
     
     thumbnail_path = os.path.join(thumbnail_dir, f'{video_id}.jpg')
     cmd = [
-        FFMPEG_PATH, '-i', source, 
+        FFMPEG_PATH,'-y','-i', source, 
         '-ss', '00:00:10.000', 
         '-vframes', '1', 
         thumbnail_path
@@ -110,7 +110,7 @@ def generate_video_teaser(source, video_id):
 
     teaser_path = os.path.join(teaser_dir, f'{video_id}_teaser.mp4')
     cmd = [
-        FFMPEG_PATH, '-i', source,
+        FFMPEG_PATH,'-y', '-i', source,
         '-t', '10',
         '-an',
         '-c:v', 'libx264', '-crf', '28', '-preset', 'veryfast',
