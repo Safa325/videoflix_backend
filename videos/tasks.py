@@ -21,14 +21,13 @@ def build_ffmpeg_command(source, name, bitrate, segment_path, output_path):
     """
     Erstellt den FFmpeg-Befehl zur Umwandlung des Videos in verschiedene HLS-Auflösungen.
     """
-    try:
-        scale_value = name.replace("p", "")
-        scale_filter = f"scale=trunc(oh*a/2)*2:{scale_value}"
-    except Exception as e:
-        raise ValueError(f"Ungültiger Auflösungsname '{name}': {e}")
+    if name == "480p":
+        scale_filter = 'scale=trunc(oh*a/2)*2:480'   
+    else:
+        raise ValueError(f"Unbekannte Auflösung: {name}")
 
     return [
-        FFMPEG_PATH, '-y', '-i', source,
+         FFMPEG_PATH, '-i', source,
         '-vf', scale_filter,
         *AUDIO_PARAMS,
         *VIDEO_CODEC,
@@ -37,7 +36,6 @@ def build_ffmpeg_command(source, name, bitrate, segment_path, output_path):
         *HLS_PARAMS,
         output_path
     ]
-
 
 def write_master_playlist(output_dir, resolutions):
     """
@@ -59,7 +57,7 @@ def update_video_status(video_id):
     video.status = 'Done'
     video.save(update_fields=['status'])
 
-def convert_to_hls(source, output_dir, video_id):
+def convert_to_hls(source, output_dir, video_id, ):
     """
     Konvertiert ein Video in HLS-Format mit mehreren Auflösungen und erstellt eine Master-Playlist.
     """
@@ -70,17 +68,16 @@ def convert_to_hls(source, output_dir, video_id):
         output_path = os.path.join(output_dir, f'{name}.m3u8')
         segment_path = os.path.join(output_dir, f'{name}_%03d.ts')
 
-        # Richtige Argumente übergeben
-        cmd = build_ffmpeg_command(source, name, bitrate, segment_path, output_path)
+        cmd = build_ffmpeg_command(source, res, name, bitrate, segment_path, output_path)
 
         try:
             subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"❌ Fehler bei {name}: {e}")
             continue
-
     master_file = write_master_playlist(output_dir, RESOLUTIONS)
     return master_file
+
 
 def generate_video_thumbnail(source, video_id):
     """
@@ -88,7 +85,7 @@ def generate_video_thumbnail(source, video_id):
     """
     thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
     os.makedirs(thumbnail_dir, exist_ok=True)
-    
+   
     thumbnail_path = os.path.join(thumbnail_dir, f'{video_id}.jpg')
     cmd = [
         FFMPEG_PATH,'-y','-i', source, 
