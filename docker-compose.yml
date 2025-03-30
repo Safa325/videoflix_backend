@@ -85,7 +85,6 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    command: [ "nginx", "-g", "daemon off;", "-c", "/etc/nginx.conf" ]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 30s
