@@ -63,7 +63,7 @@ CACHES = {
 # RQ-Queue für Hintergrundjobs
 RQ_QUEUES = {
     'low': {
-        'HOST': 'redis',  # Docker-Container-Name
+        'HOST': 'redis',  
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 1200,
