@@ -14,9 +14,10 @@ VIDEO_CODEC = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '20', '-g', '48', '
 HLS_PARAMS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
 
 RESOLUTIONS = [
-    ("854x480", "480p", "1000000"),  # aktuell nur 480p umgesetzt
+    ("1920x1080", "1080p", "4500000"),
+    ("1280x720", "720p", "2500000"),
+    ("854x480", "480p", "1000000"),
 ]
-
 
 @django_rq.job('low')
 def generate_video_thumbnail_job(source, video_id):
@@ -37,7 +38,6 @@ def generate_video_thumbnail_job(source, video_id):
 
     except Exception as e:
         logger.exception(f"Fehler im Thumbnail-Job: {e}")
-
 
 @django_rq.job('low')
 def generate_video_teaser(source, video_id):
@@ -65,7 +65,6 @@ def generate_video_teaser(source, video_id):
     except Exception as e:
         logger.exception(f"Fehler beim Teaser-Export: {e}")
 
-
 @django_rq.job('low')
 def convert_to_hls(source, output_dir, video_id):
     try:
@@ -75,7 +74,7 @@ def convert_to_hls(source, output_dir, video_id):
         for res, name, bitrate in RESOLUTIONS:
             output_path = os.path.join(output_dir, f'{name}.m3u8')
             segment_path = os.path.join(output_dir, f'{name}_%03d.ts')
-            scale_filter = 'scale=trunc(oh*a/2)*2:480'
+            scale_filter = f"scale={res}"
 
             cmd = [
                 FFMPEG_PATH, '-i', source,
@@ -103,7 +102,6 @@ def convert_to_hls(source, output_dir, video_id):
 
     except Exception as e:
         logger.exception(f"❌ Fehler bei der HLS-Konvertierung: {e}")
-
 
 @django_rq.job('low')
 def update_video_status(video_id):
