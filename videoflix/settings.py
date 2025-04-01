@@ -13,7 +13,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
 # Sicherheitseinstellungen
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
-DEBUG = True
+DEBUG = False
 
 # Hosts, die erlaubt sind
 ALLOWED_HOSTS = [
