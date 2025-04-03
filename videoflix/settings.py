@@ -41,7 +41,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://34.65.209.156",
     "https://videoflix.shamarisafa.ch",
     "https://www.videoflix.shamarisafa.ch",
-    "https://app.videoflix.shamarisafa.ch",  # 
+    "https://app.videoflix.shamarisafa.ch",  
 ]
 
 
