@@ -62,39 +62,21 @@ CACHES = {
     }
 }
 
+# RQ-Queue für Hintergrundjobs
 RQ_QUEUES = {
     'low': {
-        'HOST': 'redis',
+        'HOST': 'redis',  
         'PORT': 6379,
         'DB': 0,
-        'DEFAULT_TIMEOUT': 1200,
+        'DEFAULT_TIMEOUT': 7200,
     },
     'high': {
         'HOST': 'redis',
         'PORT': 6379,
         'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    },
-    'thumbnail': {
-        'HOST': 'redis',
-        'PORT': 6379,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    },
-    'teaser': {
-        'HOST': 'redis',
-        'PORT': 6379,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    },
-    'hls': {
-        'HOST': 'redis',
-        'PORT': 6379,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 7200,
+        'DEFAULT_TIMEOUT': 1200,
     }
 }
-
 
 # Datenbank auf PostgreSQL setzen
 DATABASES = {

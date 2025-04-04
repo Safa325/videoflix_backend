@@ -2,69 +2,111 @@ import os
 import logging
 import subprocess
 import django_rq
+
 from django.conf import settings
 from .models import Video
 
 logger = logging.getLogger(__name__)
+
 FFMPEG_PATH = '/usr/bin/ffmpeg'
-AUDIO = ['-c:a', 'aac', '-ar', '48000']
-VIDEO = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '23', '-preset', 'veryfast']
-HLS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
+AUDIO_PARAMS = ['-c:a', 'aac', '-ar', '48000']
+VIDEO_CODEC = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '20', '-g', '48', '-keyint_min', '48']
+HLS_PARAMS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
 
 RESOLUTIONS = [
-    ("640x360", "360p", "600000"),
     ("854x480", "480p", "1000000"),
-    ("1280x720", "720p", "2500000"),
+    ("640x360", "360p", "600000"),  
 ]
 
 @django_rq.job('low')
 def generate_video_thumbnail_job(source, video_id):
-    path = os.path.join(settings.MEDIA_ROOT, 'thumbnails', f'{video_id}.jpg')
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    cmd = [FFMPEG_PATH, '-y', '-i', source, '-ss', '00:00:10.000', '-vframes', '1', path]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode == 0:
-        Video.objects.filter(id=video_id).update(thumbnail=os.path.join('thumbnails', f'{video_id}.jpg'))
+    try:
+        thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
+        os.makedirs(thumbnail_dir, exist_ok=True)
+        thumbnail_path = os.path.join(thumbnail_dir, f'{video_id}.jpg')
+        cmd = [FFMPEG_PATH, '-y', '-i', source, '-ss', '00:00:10.000', '-vframes', '1', thumbnail_path]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if result.returncode != 0:
+            logger.error(f"❌ Error generating thumbnail: {result.stderr.decode('utf-8')}")
+            return
+
+        video = Video.objects.get(id=video_id)
+        video.thumbnail = os.path.join('thumbnails', f'{video_id}.jpg')
+        video.save(update_fields=['thumbnail'])
+
+    except Exception as e:
+        logger.exception(f"Fehler im Thumbnail-Job: {e}")
 
 @django_rq.job('low')
 def generate_video_teaser(source, video_id):
-    path = os.path.join(settings.MEDIA_ROOT, 'teasers', f'{video_id}_teaser.mp4')
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    cmd = [FFMPEG_PATH, '-y', '-i', source, '-t', '10', '-an',
-           '-c:v', 'libx264', '-crf', '28', '-preset', 'veryfast', '-b:v', '500k', path]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode == 0:
-        Video.objects.filter(id=video_id).update(teaser_file=os.path.join('teasers', f'{video_id}_teaser.mp4'))
+    try:
+        teaser_dir = os.path.join(settings.MEDIA_ROOT, 'teasers')
+        os.makedirs(teaser_dir, exist_ok=True)
+        teaser_path = os.path.join(teaser_dir, f'{video_id}_teaser.mp4')
 
-def build_hls_command(source, res, name, bitrate, out_dir):
-    segment_path = os.path.join(out_dir, f'{name}_%03d.ts')
-    playlist = os.path.join(out_dir, f'{name}.m3u8')
-    scale = ['-vf', f'scale={res}']
-    return [FFMPEG_PATH, '-i', source] + scale + AUDIO + VIDEO + \
-           ['-b:v', bitrate, '-maxrate', bitrate, '-bufsize', str(int(bitrate)*2),
-            '-hls_segment_filename', segment_path] + HLS + [playlist]
+        cmd = [
+            FFMPEG_PATH, '-y', '-i', source,
+            '-t', '10', '-an',
+            '-c:v', 'libx264', '-crf', '28', '-preset', 'veryfast',
+            '-b:v', '500k', teaser_path
+        ]
+
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            logger.error(f"❌ Error generating teaser: {result.stderr.decode('utf-8')}")
+            return
+
+        video = Video.objects.get(id=video_id)
+        video.teaser_file = os.path.join('teasers', f'{video_id}_teaser.mp4')
+        video.save(update_fields=['teaser_file'])
+
+    except Exception as e:
+        logger.exception(f"Fehler beim Teaser-Export: {e}")
 
 @django_rq.job('low')
 def convert_to_hls(source, output_dir, video_id):
-    base = os.path.join(settings.MEDIA_ROOT, 'hls', str(video_id))
-    os.makedirs(base, exist_ok=True)
-    for res, name, bitrate in RESOLUTIONS:
-        cmd = build_hls_command(source, res, name, bitrate, base)
-        try:
-            subprocess.run(cmd, check=True)
-        except Exception as e:
-            logger.error(f"HLS error [{name}]: {e}")
+    try:
+        output_dir = os.path.join(settings.MEDIA_ROOT, 'hls', str(video_id))
+        os.makedirs(output_dir, exist_ok=True)
 
-    write_master_playlist(base, video_id)
-
-def write_master_playlist(output_dir, video_id):
-    path = os.path.join(output_dir, 'master.m3u8')
-    with open(path, 'w') as f:
-        f.write("#EXTM3U\n")
         for res, name, bitrate in RESOLUTIONS:
-            f.write(f"#EXT-X-STREAM-INF:BANDWIDTH={bitrate},RESOLUTION={res}\n{name}.m3u8\n")
-    Video.objects.filter(id=video_id).update(hls_playlist=os.path.join('hls', str(video_id), 'master.m3u8'))
+            output_path = os.path.join(output_dir, f'{name}.m3u8')
+            segment_path = os.path.join(output_dir, f'{name}_%03d.ts')
+            scale_filter = f"scale={res}"
+
+            cmd = [
+                FFMPEG_PATH, '-i', source,
+                '-vf', scale_filter,
+                *AUDIO_PARAMS,
+                *VIDEO_CODEC,
+                '-b:v', bitrate, '-maxrate', bitrate, '-bufsize', str(int(bitrate) * 2),
+                '-hls_segment_filename', segment_path,
+                *HLS_PARAMS,
+                output_path
+            ]
+
+            subprocess.run(cmd, check=True)
+
+        master_playlist_path = os.path.join(output_dir, 'master.m3u8')
+        with open(master_playlist_path, 'w') as f:
+            f.write("#EXTM3U\n")
+            for res, name, bitrate in RESOLUTIONS:
+                f.write(f"#EXT-X-STREAM-INF:BANDWIDTH={bitrate},RESOLUTION={res}\n")
+                f.write(f"{name}.m3u8\n")
+
+        video = Video.objects.get(id=video_id)
+        video.hls_playlist = os.path.join('hls', str(video_id), 'master.m3u8')
+        video.save(update_fields=['hls_playlist'])
+
+    except Exception as e:
+        logger.exception(f"❌ Fehler bei der HLS-Konvertierung: {e}")
 
 @django_rq.job('low')
 def update_video_status(video_id):
-    Video.objects.filter(id=video_id).update(status='Done')
+    try:
+        video = Video.objects.get(id=video_id)
+        video.status = 'Done'
+        video.save(update_fields=['status'])
+    except Exception as e:
+        logger.exception(f"❌ Fehler beim Status-Update: {e}")

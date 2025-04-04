@@ -17,22 +17,24 @@ from .tasks import (
 def video_post_save(sender, instance, created, **kwargs):
     if created and instance.video_file:
         source = instance.video_file.path
+
+        # Setze den Status direkt beim Upload
         instance.status = 'Uploading'
         instance.save(update_fields=['status'])
 
         queue = django_rq.get_queue('low', autocommit=True)
 
-        # Thumbnail zuerst
-        thumbnail_job = queue.enqueue(generate_video_thumbnail_job, source, instance.id)
+        # Thumbnail (async)
+        queue.enqueue(generate_video_thumbnail_job, source, instance.id)
 
-        # Dann Teaser, abhängig von Thumbnail
-        teaser_job = queue.enqueue(generate_video_teaser, source, instance.id, depends_on=thumbnail_job)
+        # HLS-Umwandlung (async)
+        hls_job = queue.enqueue(convert_to_hls, source, None, instance.id)
 
-        # Dann HLS, abhängig von Teaser
-        hls_job = queue.enqueue(convert_to_hls, source, None, instance.id, depends_on=teaser_job)
+        # Teaser (async)
+        teaser_job = queue.enqueue(generate_video_teaser, source, instance.id)
 
-        # Dann Status-Update, abhängig von HLS
-        queue.enqueue(update_video_status, instance.id, depends_on=hls_job)
+        # Status setzen, sobald alle fertig sind
+        queue.enqueue(update_video_status, instance.id, depends_on=[hls_job, teaser_job])
 
 
 @receiver(post_delete, sender=Video)
