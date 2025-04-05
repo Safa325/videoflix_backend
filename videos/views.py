@@ -20,15 +20,6 @@ class VideosView(generics.ListCreateAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
 
-    # def get_queryset(self):
-    #     """
-    #     Holt alle Videos aus dem Cache oder aus der Datenbank.
-    #     """
-    #     if 'videos' in cache:
-    #         return cache.get('videos')
-    #     videos = Video.objects.all()
-    #     cache.set('videos', videos, timeout=CACHE_TTL)
-    #     return videos
 
 class VideoDetailView(generics.RetrieveUpdateDestroyAPIView):
     """

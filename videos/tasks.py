@@ -14,8 +14,9 @@ VIDEO_CODEC = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '20', '-g', '48', '
 HLS_PARAMS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
 
 RESOLUTIONS = [
+    ("1280x720", "720p", "2500000"),
     ("854x480", "480p", "1000000"),
-    ("640x360", "360p", "600000"),  
+    ("640x360", "360p", "600000"),
 ]
 
 @django_rq.job('low')
