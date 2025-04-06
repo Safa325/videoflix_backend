@@ -19,6 +19,10 @@ RESOLUTIONS = [
     ("640x360", "360p", "600000"),
 ]
 
+def build_absolute_url(path: str) -> str:
+    domain = 'videoflix.shamarisafa.ch'  
+    return f"https://{domain}/{path.lstrip('/')}"
+
 @django_rq.job('low')
 def generate_video_thumbnail_job(source, video_id):
     try:
@@ -33,7 +37,8 @@ def generate_video_thumbnail_job(source, video_id):
             return
 
         video = Video.objects.get(id=video_id)
-        video.thumbnail = os.path.join('thumbnails', f'{video_id}.jpg')
+        relative_path = os.path.join('media', 'thumbnails', f'{video_id}.jpg')
+        video.thumbnail = build_absolute_url(relative_path)
         video.save(update_fields=['thumbnail'])
 
     except Exception as e:
@@ -59,7 +64,8 @@ def generate_video_teaser(source, video_id):
             return
 
         video = Video.objects.get(id=video_id)
-        video.teaser_file = os.path.join('teasers', f'{video_id}_teaser.mp4')
+        relative_path = os.path.join('media', 'teasers', f'{video_id}_teaser.mp4')
+        video.teaser_file = build_absolute_url(relative_path)
         video.save(update_fields=['teaser_file'])
 
     except Exception as e:
@@ -97,7 +103,8 @@ def convert_to_hls(source, output_dir, video_id):
                 f.write(f"{name}.m3u8\n")
 
         video = Video.objects.get(id=video_id)
-        video.hls_playlist = os.path.join('hls', str(video_id), 'master.m3u8')
+        relative_path = os.path.join('media', 'hls', str(video_id), 'master.m3u8')
+        video.hls_playlist = build_absolute_url(relative_path)
         video.save(update_fields=['hls_playlist'])
 
     except Exception as e:

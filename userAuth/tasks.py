@@ -10,7 +10,7 @@ from django.utils.encoding import force_bytes
 def send_activation_email(user_id):
     user = User.objects.get(pk=user_id)
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    activation_link = f"http://127.0.0.1:4200/activate/{uidb64}/{account_activation_token.make_token(user)}"
+    activation_link = f"https://app.videoflix.shamarisafa.ch/activate/{uidb64}/{account_activation_token.make_token(user)}"
   
     mail_subject = 'Aktiviere deinen Account'
     html_content = render_to_string('activation_email.html', {
@@ -24,7 +24,7 @@ def send_activation_email(user_id):
 def send_password_reset_email(user_id):
     user = User.objects.get(pk=user_id)
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    reset_link = f"http://127.0.0.1:4200/set-password/{uidb64}/{custom_password_reset_token.make_token(user)}"
+    reset_link = f"https://app.videoflix.shamarisafa.ch/set-password/{uidb64}/{custom_password_reset_token.make_token(user)}"
     
     mail_subject = 'Videoflix - Passwort zurücksetzen'
     html_content = render_to_string('set_password_email.html', {
