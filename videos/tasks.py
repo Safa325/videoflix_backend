@@ -2,7 +2,6 @@ import os
 import logging
 import subprocess
 import django_rq
-
 from django.conf import settings
 from .models import Video
 
@@ -14,14 +13,10 @@ VIDEO_CODEC = ['-c:v', 'h264', '-profile:v', 'main', '-crf', '20', '-g', '48', '
 HLS_PARAMS = ['-hls_time', '4', '-hls_playlist_type', 'vod']
 
 RESOLUTIONS = [
-    ("160x120", "120p", "150000"), 
-    ("640x360", "360p", "600000"),   
-    ("854x480", "480p", "1000000"), 
+    ("160x120", "120p", "150000"),
+    ("640x360", "360p", "600000"),
+    ("854x480", "480p", "1000000"),
 ]
-
-def build_absolute_url(path: str) -> str:
-    domain = 'videoflix.shamarisafa.ch'  
-    return f"https://{domain}/{path.lstrip('/')}"
 
 @django_rq.job('low')
 def generate_video_thumbnail_job(source, video_id):
@@ -37,8 +32,7 @@ def generate_video_thumbnail_job(source, video_id):
             return
 
         video = Video.objects.get(id=video_id)
-        relative_path = os.path.join('media', 'thumbnails', f'{video_id}.jpg')
-        video.thumbnail = build_absolute_url(relative_path)
+        video.thumbnail = os.path.join('thumbnails', f'{video_id}.jpg')
         video.save(update_fields=['thumbnail'])
 
     except Exception as e:
@@ -64,8 +58,7 @@ def generate_video_teaser(source, video_id):
             return
 
         video = Video.objects.get(id=video_id)
-        relative_path = os.path.join('media', 'teasers', f'{video_id}_teaser.mp4')
-        video.teaser_file = build_absolute_url(relative_path)
+        video.teaser_file = os.path.join('teasers', f'{video_id}_teaser.mp4')
         video.save(update_fields=['teaser_file'])
 
     except Exception as e:
@@ -103,8 +96,7 @@ def convert_to_hls(source, output_dir, video_id):
                 f.write(f"{name}.m3u8\n")
 
         video = Video.objects.get(id=video_id)
-        relative_path = os.path.join('media', 'hls', str(video_id), 'master.m3u8')
-        video.hls_playlist = build_absolute_url(relative_path)
+        video.hls_playlist = os.path.join('hls', str(video_id), 'master.m3u8')
         video.save(update_fields=['hls_playlist'])
 
     except Exception as e:
