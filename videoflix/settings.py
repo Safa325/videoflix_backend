@@ -19,18 +19,19 @@ DEBUG = False
 ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
-    '34.65.209.156', 
+    '34.65.3.56', 
     'videoflix.shamarisafa.ch',  
     'www.videoflix.shamarisafa.ch',
     'app.videoflix.shamarisafa.ch' 
+    'www.app.videoflix.shamarisafa.ch' 
 ]
 
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
-    "http://34.65.209.156",
-    "https://34.65.209.156",
+    "http://34.65.3.56",
+    "https://34.65.3.56",
     "https://videoflix.shamarisafa.ch",
     "https://www.videoflix.shamarisafa.ch",
     "https://www.app.videoflix.shamarisafa.ch",
@@ -40,8 +41,8 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost",
-    "http://34.65.209.156",
-    "https://34.65.209.156",
+    "http://34.65.3.56",
+    "https://34.65.3.56",
     "https://videoflix.shamarisafa.ch",
     "https://www.videoflix.shamarisafa.ch",
     "https://www.app.videoflix.shamarisafa.ch",  
