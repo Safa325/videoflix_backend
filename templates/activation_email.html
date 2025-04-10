@@ -5,50 +5,26 @@
   <meta charset="UTF-8">
   <title>Aktivierung deines Accounts - Videoflix</title>
 </head>
-<style>
-  .wrapper {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
 
-  p {
-    margin: 20px 0;
-    line-height: 1.5;
-    font-size: 16px;
-    color: #333;
-  }
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <div style="width:100%; max-width:600px; margin:0 auto; text-align:center; background-color:#ffffff; padding:20px;">
+    <img src="https://videoflix.shamarisafa.ch/static/images/logo.png" alt="Videoflix Logo" width="200" style="margin-bottom:20px;">
+    
+    <p style="margin:20px 0; line-height:1.5; font-size:16px; color:#333;">
+      Hallo {{ user.username }},
+    </p>
+    
+    <p style="margin:20px 0; line-height:1.5; font-size:16px; color:#333;">
+      Bitte klicke auf den unten stehenden Link, um deinen Account zu aktivieren:
+    </p>
 
-  .link {
-    display: inline-block;
-    background-color: #2e3edf;
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    margin: 20px 0;
-    border-radius: 5px;
-    max-width: 120px;
-  }
+    <a href="{{activation_link}}" style="display:inline-block; background-color:#2e3edf; color:#ffffff; padding:10px 20px; text-decoration:none; margin:20px 0; border-radius:5px;">
+      Aktiviere deinen Account
+    </a>
 
-  a:hover {
-    background-color: #969fef;
-  }
-
-  img {
-    margin-bottom: 20px;
-  }
-</style>
-
-<body>
-  <div class="wrapper">
-    <img class="logo" src="https://videoflix.shamarisafa.ch/static/images/logo.png" alt="Videoflix Logo"
-      width="200" />
-    <p>Hallo {{ user.username }},</p>
-    <p>Bitte klicke auf den unten stehenden Link, um deinen Account zu aktivieren:</p>
-    <a class="link" href="{{activation_link}}">Aktiviere deinen Account</a>
-    <p>Wenn du den Account nicht erstellt hast, ignoriere bitte diese E-Mail.</p>
+    <p style="margin:20px 0; line-height:1.5; font-size:14px; color:#777;">
+      Wenn du den Account nicht erstellt hast, ignoriere bitte diese E-Mail.
+    </p>
   </div>
 </body>
 
